@@ -42,17 +42,11 @@ def classify_news_message(news_text):
 def extract_location_details(article_title, article_body):
     query = (
         f"""
-        Extract the location details (City, Country, Region) from the following news article.
-        If no specific city, country, or region is mentioned, return None for the missing fields.
-        if u recognize the region by city and country, fill the region as you see.
+        Extract the location details (City, Country, Region) from the following news article. If no specific city, country,
+        or region is mentioned, return None for the missing fields. if u recognize the region by city and country,
+        fill the region as you see. only one result for each and no additional comments at all and please dont use None!!
         Respond in this exact JSON format:
-        {{
-            "city": ["city" or "null"],
-            "country": ["country" or "null"],
-             "region": ["region" or "null"]
-        }}
-        only one result for each and no additional comments at all
-        and please dont use None!!
+        {{ "city": ["city" or "null"], "country": ["country" or "null"], "region": ["region" or "null"] }}
 
         News Message:
         "{
