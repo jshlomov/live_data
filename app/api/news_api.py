@@ -22,7 +22,7 @@ budy = {
 }
 
 
-def fetch_news():
+def get_news():
     response = requests.post(url, json=budy)
     json_response = response.json()
     return json_response

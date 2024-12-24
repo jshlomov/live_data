@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from app.api.groq_api import classify_news_message, extract_location_details
-from app.api.news_api import fetch_news
+from app.api.news_api import get_news
 from app.kafka_settings.admin import init_topics
 from app.kafka_settings.producer import produce_message
 from app.utils.location_util import get_lan_and_lon
@@ -12,7 +12,7 @@ load_dotenv(verbose=True)
 
 if __name__ == '__main__':
     # init_topics()
-    news_res = fetch_news()
+    news_res = get_news()
 
     for news in news_res.get("articles", {}).get("results", []):
         article_type = classify_news_message(news["body"])

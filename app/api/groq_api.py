@@ -15,14 +15,13 @@ def classify_news_message(news_text):
         prompt = (
             f"""
             Classify the message in one of following categories:
-            1. General News
-            2. Historical Terrorism Event
-            3. Current Terrorism Event
-
-            News Message:
+            return the category only without the number            
+            1. general news
+            2. terrorism event history
+            3. terrorism event now
+            
+            text:
             "{news_text}"
-
-            get just category number (1, 2, or 3) as response.
             """
         )
         completion_response = groq_client.chat.completions.create(
@@ -31,17 +30,9 @@ def classify_news_message(news_text):
         )
 
         category = completion_response.choices[0].message.content.strip()
-        if category not in ["1", "2", "3"]:
+        if category not in ["general news", "terrorism event history", "terrorism event now"]:
             raise ValueError(f"Invalid category: {category}")
-        if category == "1":
-            category_name = "General News"
-        elif category == "2":
-            category_name = "Historical Terrorism Event"
-        elif category == "3":
-            category_name = "Current Terrorism Event"
-        else:
-            category_name = None
-        return category_name
+        return category
 
     except Exception as error:
         print(f"Classification error: {error}")
@@ -79,22 +70,14 @@ def extract_location_details(article_title, article_body):
 
         result = json.loads(completion_response.choices[0].message.content)
 
-        # return result
-        if check_result(result):
-            return result
-        else:
-            print(f"Validation failed for location details: {result}")
-            return None
+        if not result or not isinstance(result, dict) or "city" not in result or "country" not in result or "region" not in result:
+            raise ValueError("Invalid JSON response")
+
+        if result["city"] == "null" and result["country"] == "null" and result["region"] == "null":
+            raise ValueError("Invalid JSON response")
+
+        return result
 
     except Exception as e:
         print(f"Error: {e}")
         return None
-
-
-def check_result(result):
-    if not isinstance(result, dict):
-        return False
-    for key in {"city", "country", "region"}:
-        if key not in result or (result[key] != "null" and not isinstance(result[key], str)):
-            return False
-    return True
