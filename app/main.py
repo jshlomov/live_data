@@ -11,10 +11,8 @@ from app.utils.location_util import get_lan_and_lon
 load_dotenv(verbose=True)
 
 if __name__ == '__main__':
-    # init_topics()
     news_res = get_news()
-
-    for news in news_res.get("articles", {}).get("results", []):
+    for news in news_res.get["articles"]["results"]:
         article_type = classify_news_message(news["body"])
         location = extract_location_details(news.get("title"), news.get("body"))
         if not location:

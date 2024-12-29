@@ -1,6 +1,5 @@
 import json
 import os
-from tabnanny import check
 
 from groq import Groq
 from dotenv import load_dotenv
@@ -9,28 +8,26 @@ load_dotenv(verbose=True)
 
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-
 def classify_news_message(news_text):
     try:
-        prompt = (
+        query = (
             f"""
-            Classify the message in one of following categories:
-            return the category only without the number            
-            1. general news
-            2. terrorism event history
-            3. terrorism event now
-            
-            text:
+            i want you to classify this text. the options i want you to classify is:
+            1. a general news as "general"
+            2. a terrorism event that happen already (historical) as "history terror"
+            3. a  terrorism event that happen now "actual terror"
+            return the classification only.
+            here is the text:
             "{news_text}"
             """
         )
         completion_response = groq_client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": query}],
             model="llama3-8b-8192",
         )
 
         category = completion_response.choices[0].message.content.strip()
-        if category not in ["general news", "terrorism event history", "terrorism event now"]:
+        if category not in ["general", "history terror", "actual terror"]:
             raise ValueError(f"Invalid category: {category}")
         return category
 
@@ -42,16 +39,17 @@ def classify_news_message(news_text):
 def extract_location_details(article_title, article_body):
     query = (
         f"""
-        Extract the location details (City, Country, Region) from the following news article. If no specific city, country,
-        or region is mentioned, return None for the missing fields. if u recognize the region by city and country,
-        fill the region as you see. only one result for each and no additional comments at all and please dont use None!!
-        Respond in this exact JSON format:
-        {{ "city": ["city" or "null"], "country": ["country" or "null"], "region": ["region" or "null"] }}
-
-        News Message:
+        I want you to extract the location of the terrorist act. Extract the information from the text
+        as (city, country, region). If you only see country and city you can fill in the region according to
+        what you think is correct. If you don't have information for the values you don't have information
+        for, return None.
+        Another thing, I want you to return in json format in the form of {{city:..., country:.., region:..}}
+        in one line.
+        return the json only without any comments. no explanations, just the json.
+        this is the text:
         "{
-        article_title.replace("\\", ""),
-        article_body.replace("\\", "") if article_body else ""
+        article_title,
+        article_body
         }"
         """
     )
@@ -61,13 +59,9 @@ def extract_location_details(article_title, article_body):
             messages=[{"role": "user", "content": query}],
             model="llama3-8b-8192",
         )
-
         result = json.loads(completion_response.choices[0].message.content)
 
         if not result or not isinstance(result, dict) or "city" not in result or "country" not in result or "region" not in result:
-            raise ValueError("Invalid JSON response")
-
-        if result["city"] == "null" and result["country"] == "null" and result["region"] == "null":
             raise ValueError("Invalid JSON response")
 
         return result
